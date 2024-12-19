@@ -5,21 +5,23 @@ import Recommendation from './recommendationModel.js';
 
 const router = express.Router();
 
-// 获取电影推荐列表并存储到 MongoDB
-router.get('/:movieId', asyncHandler(async (req, res) => {
-    const movieId = req.params.movieId;
+router.get('/movie/:id', asyncHandler(async (req, res) => {
+    const movieId = req.params.id;
+    let recommendations = await Recommendation.findOne({ movieId });
 
-    // 调用 TMDB API 获取推荐电影数据
-    const recommendationsData = await getMovieRecommendations({ queryKey: [null, { id: movieId }] });
+    if (!recommendations) {
+        const data = await getMovieRecommendations({ queryKey: [null, { id: movieId }] });
+        recommendations = await Recommendation.create({
+            movieId,
+            recommendations: data.results.map((rec) => ({
+                id: rec.id,
+                title: rec.title,
+                overview: rec.overview,
+            })),
+        });
+    }
 
-    // 保存或更新数据到 MongoDB
-    const recommendations = await Recommendation.findOneAndUpdate(
-        { movieId },
-        { movieId, recommendations: recommendationsData.results },
-        { upsert: true, new: true }
-    );
-
-    res.status(200).json(recommendations);
+    res.status(200).json(recommendations.recommendations);
 }));
 
 export default router;
