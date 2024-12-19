@@ -34,6 +34,36 @@ export const getUpcomingMovies = async () => {
     }
 };
 
+export const getNowPlayingMovies = async () => {
+    try {
+        const response = await fetch(
+            `https://api.themoviedb.org/3/movie/now_playing?api_key=${process.env.TMDB_KEY}&language=en-US&page=1`
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching now-playing movies: ${error.message}`);
+        throw error;
+    }
+};
+
+export const getTrendingMovies = async () => {
+    try {
+        const response = await fetch(
+            `https://api.themoviedb.org/3/trending/movie/day?api_key=${process.env.TMDB_KEY}`
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching trending movies: ${error.message}`);
+        throw error;
+    }
+};
+
 export const getMovieGenres = async () => {
     try {
         const response = await fetch(
@@ -79,11 +109,30 @@ export const getMovieRecommendations = async (movieId) => {
         );
 
         if (!response.ok) {
-            throw new Error('Failed to fetch movie recommendations');
+            const error = await response.json();
+            throw new Error(`TMDB API Error: ${error.status_message || 'Unknown error'}`);
         }
         return await response.json();
     } catch (error) {
-        console.error(error);
+        console.error(`Failed to fetch recommendations for movie ID ${movieId}:`, error.message);
+        throw error; 
+    }
+};
+
+
+export const getSimilarMovies = async (movieId) => {
+    try {
+        const response = await fetch(
+            `https://api.themoviedb.org/3/movie/${movieId}/similar?api_key=${process.env.TMDB_KEY}&language=en-US&page=1`
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch similar movies: ${response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching similar movies:', error.message);
         throw error;
     }
 };
@@ -96,9 +145,14 @@ export const getMovieCredits = async (movieId) => {
         );
 
         if (!response.ok) {
+            const error = await response.json();
+            console.error('Error response from TMDB:', error);
             throw new Error('Failed to fetch movie credits');
         }
-        return await response.json();
+        
+        const data = await response.json();
+        return data;
+
     } catch (error) {
         console.error(error);
         throw error;
@@ -129,11 +183,12 @@ export const getActorMovies = async (actorId) => {
         );
 
         if (!response.ok) {
-            throw new Error('Failed to fetch actor movies');
+            const errorMessage = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorMessage}`);
         }
         return await response.json();
     } catch (error) {
-        console.error(error);
+        console.error(`Error fetching actor movies for ID ${actorId}:`, error.message);
         throw error;
     }
 };
