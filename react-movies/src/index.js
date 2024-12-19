@@ -50,8 +50,8 @@ const AppContent = () => {
         <Route path="/movies/favorites" element={<PrivateRoute element={<FavoriteMoviesPage />} />} />
         <Route path="/reviews/:movieId/:reviewId" element={<PrivateRoute element={<MovieReviewPage />} />} />
         <Route path="/movies/:id" element={<PrivateRoute element={<MoviePage />} />} />
-        <Route path="/movie/:id/recommendations" element={<PrivateRoute element={<MovieRecommendationsPage />} />} />
-        <Route path="/movie/:id/credits" element={<PrivateRoute element={<MovieCreditsPage />} />} />
+        <Route path="/movies/:id/recommendations" element={<PrivateRoute element={<MovieRecommendationsPage />} />} />
+        <Route path="/movies/:id/credits" element={<PrivateRoute element={<MovieCreditsPage />} />} />
         <Route path="/reviews/form" element={<PrivateRoute element={<AddMovieReviewPage />} />} />
         <Route path="/movies/upcoming" element={<PrivateRoute element={<UpcomingMoviesPage />} />} />
         <Route path="/movies/trending" element={<PrivateRoute element={<TrendingMoviesPage />} />} />

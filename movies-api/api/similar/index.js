@@ -15,12 +15,12 @@ router.get('/movie/:id', asyncHandler(async (req, res) => {
 
             similarMoviesInDB = await SimilarMovie.create({
                 movieId,
-                similarMovies: data.results.map((movie) => ({
-                    movieId: movie.id,
-                    title: movie.title || 'No title available',
-                    overview: movie.overview || 'No overview available',
-                    poster_path: movie.poster_path || null,
-                    release_date: movie.release_date || 'Unknown',
+                similarMovies: data.results.map((similar) => ({
+                    movieId: similar.id,
+                    title: similar.title || 'No title available',
+                    overview: similar.overview || 'No overview available',
+                    poster_path: similar.poster_path || null,
+                    release_date: similar.release_date || 'Unknown',
                 })),
             });
         } catch (error) {

@@ -1,30 +1,19 @@
 import React from "react";
-import PageTemplate from "../components/templateActorPage"; 
+import PageTemplate from "../components/templateActorPage";
 import Spinner from "../components/spinner";
 import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
-import { getActorDetails, getActorMovies } from "../api/tmdb-api";
+import { getActorDetails, getActorMovies } from "../api/tmdb-api"; // 修改为后端 API
 
 const ActorDetailsPage = () => {
-  const { id: actorId } = useParams();
+  const { id } = useParams();
 
-  const { data: actor, error, isLoading, isError } = useQuery(
-    ["actor", { id: actorId }],
-    () => getActorDetails(actorId)
+  const { data: actor, isLoading: actorLoading } = useQuery(["actor", { id }], () =>
+    getActorDetails(id)
   );
+  const { data: movies } = useQuery(["actorMovies", { id }], () => getActorMovies(id));
 
-  const { data: movies, isLoading: moviesLoading } = useQuery(
-    ["actorMovies", { id: actorId }],
-    () => getActorMovies(actorId)
-  );
-
-  if (isLoading || moviesLoading) {
-    return <Spinner />;
-  }
-
-  if (isError) {
-    return <h1>{error.message}</h1>;
-  }
+  if (actorLoading) return <Spinner />;
 
   return (
     <PageTemplate actor={actor}>
@@ -32,7 +21,7 @@ const ActorDetailsPage = () => {
       <p>{actor.biography}</p>
       <h3>Movies</h3>
       <ul>
-        {movies.cast.map((movie) => (
+        {movies?.map((movie) => (
           <li key={movie.id}>
             {movie.title} ({movie.release_date})
           </li>

@@ -18,6 +18,18 @@ export const getMovies = async () => {
     }
 };
 
+export const getMovie = async (movieId) => {
+    try {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_KEY}&language=en-US`);
+        if (!response.ok) throw new Error(`Failed to fetch movie details for ID ${movieId}`);
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching movie details for ID ${movieId}:`, error.message);
+        throw error;
+    }
+};
+
+
 export const getUpcomingMovies = async () => {
     try {
         const response = await fetch(
@@ -192,3 +204,18 @@ export const getActorMovies = async (actorId) => {
         throw error;
     }
 };
+
+export const getMovieImages = async (movieId) => {
+    try {
+        const response = await fetch(
+            `https://api.themoviedb.org/3/movie/${movieId}/images?api_key=${process.env.TMDB_KEY}`
+        );
+        if (!response.ok) throw new Error(`Failed to fetch images for movie ID ${movieId}`);
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching images for movie ID ${movieId}:`, error.message);
+        throw error;
+    }
+};
+
+
