@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.js": "/static/js/main.6f0f0266.js",
+    "static/media/welcome.png": "/static/media/welcome.49e65bc87d103f516022.png",
+    "static/media/Background.jpg": "/static/media/Background.7c6957ccdc91444f4b54.jpg",
+    "static/media/film-poster-placeholder.png": "/static/media/film-poster-placeholder.9a8182eb4c8ae70fe602.png",
+    "index.html": "/index.html",
+    "main.6f0f0266.js.map": "/static/js/main.6f0f0266.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.6f0f0266.js"
+  ]
+}

@@ -9,34 +9,66 @@ import {
   getMovieCredits, 
   getMovieReviews, 
   getMovieRecommendations, 
-  getSimilarMovies 
+  getSimilarMovies,
+  getMovieImages
 } from "../api/tmdb-api";
 import Drawer from "@mui/material/Drawer";
 import Button from "@mui/material/Button";
 
 const MovieDetailsPage = () => {
   const { id } = useParams();
+  const movieId = String(id);
   const [drawerContent, setDrawerContent] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const { data: movie, error, isLoading, isError } = useQuery(["movie", { id }], () =>
-    getMovie(id)
+  // 修改所有的 useQuery 调用，直接传递 id 参数给 API 函数
+  const { data: movie, error, isLoading, isError } = useQuery(
+    ["movie", movieId],
+    () => getMovie(movieId),
+    {
+      enabled: !!id
+    }
   );
 
-  const { data: credits } = useQuery(["credits", { id }], () =>
-    getMovieCredits(id)
+  const { data: credits } = useQuery(
+    ["credits", movieId],
+    () => getMovieCredits(movieId),
+    {
+      enabled: !!movieId
+    }
   );
 
-  const { data: reviews } = useQuery(["reviews", { id }], () =>
-    getMovieReviews(id)
+  const { data: reviews } = useQuery(
+    ["reviews", movieId],
+    () => getMovieReviews(movieId),
+    {
+      enabled: !!movieId
+    }
   );
 
-  const { data: recommendations } = useQuery(["recommendations", { id }], () =>
-    getMovieRecommendations(id)
+  const { data: recommendations } = useQuery(
+    ["recommendations", movieId],
+    () => getMovieRecommendations(movieId),
+    {
+      enabled: !!movieId
+    }
   );
 
-  const { data: similarMovies } = useQuery(["similarMovies", { id }], () =>
-    getSimilarMovies(id)
+  const { data: similarMovies } = useQuery(
+    ["similarMovies", movieId],
+    () => getSimilarMovies(movieId),
+    {
+      enabled: !!movieId
+    }
+  );
+
+  const { data: images } = useQuery(
+    ["images", movieId],
+    () => getMovieImages,
+    {
+      enabled: Boolean(movieId),
+      retry: false
+    }
   );
 
   if (isLoading) return <Spinner />;
@@ -53,7 +85,7 @@ const MovieDetailsPage = () => {
 
   return (
     <PageTemplate movie={movie}>
-      <MovieDetails movie={movie} />
+      <MovieDetails movie={movie} image={images}/>
 
       <div style={{ marginTop: "20px" }}>
         <Button

@@ -12,10 +12,12 @@ const TrendingMoviesPage = () => {
   if (isLoading) return <Spinner />;
   if (isError) return <h1>{error.message}</h1>;
 
+  const movies = data?.results || data;
+
   return (
     <PageTemplate
       title="Trending Movies"
-      movies={data}
+      movies={movies}
       action={(movie) => (
         <>
           <AddToFavoritesIcon movie={movie} />

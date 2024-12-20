@@ -53,9 +53,9 @@ const AppContent = () => {
         <Route path="/movies/:id/recommendations" element={<PrivateRoute element={<MovieRecommendationsPage />} />} />
         <Route path="/movies/:id/credits" element={<PrivateRoute element={<MovieCreditsPage />} />} />
         <Route path="/reviews/form" element={<PrivateRoute element={<AddMovieReviewPage />} />} />
-        <Route path="/movies/upcoming" element={<PrivateRoute element={<UpcomingMoviesPage />} />} />
-        <Route path="/movies/trending" element={<PrivateRoute element={<TrendingMoviesPage />} />} />
-        <Route path="/movies/now_playing" element={<PrivateRoute element={<NowPlayingMoviesPage />} />} />
+        <Route path="/movies/tmdb/upcoming" element={<PrivateRoute element={<UpcomingMoviesPage />} />} />
+        <Route path="/movies/tmdb/trending" element={<PrivateRoute element={<TrendingMoviesPage />} />} />
+        <Route path="/movies/tmdb/now_playing" element={<PrivateRoute element={<NowPlayingMoviesPage />} />} />
         <Route path="/watchlist" element={<PrivateRoute element={<WatchlistPage />} />} />
         <Route path="/actor/:id" element={<PrivateRoute element={<ActorDetails />} />} />
         <Route path="*" element={<Navigate to="/login" />} />
