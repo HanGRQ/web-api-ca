@@ -8,6 +8,7 @@ import Actor from '../api/actor/actorModel';
 import Credit from '../api/credits/creditModel'; 
 import Recommendation from '../api/recommendations/recommendationModel';
 import SimilarMovie from '../api/similar/similarMovieModel';
+import Images from '../api/images/imageModel';
 import { 
     getMovies, 
     getMovieReviews, 
@@ -15,7 +16,8 @@ import {
     getActorMovies, 
     getMovieRecommendations, 
     getSimilarMovies,
-    getMovieCredits 
+    getMovieCredits ,
+    getMovieImages
 } from '../api/tmdb-api.js';
 
 // 加载电影数据
@@ -246,6 +248,22 @@ async function loadSimilarMovies() {
     }
 }
 
+export async function loadImages() {
+    console.log('Loading movie images...');
+    const movies = await Movie.find();
+    
+    for (const movie of movies) {
+        const tmdbImages = await getMovieImages(movie.id);
+        const images = new Images({
+            movieId: movie.id,
+            backdrops: tmdbImages.backdrops,
+            posters: tmdbImages.posters
+        });
+        await images.save();
+        console.log(`Images loaded for movie ${movie.id}`);
+    }
+}
+
 async function main() {
     if (process.env.NODE_ENV !== 'development') {
         console.log('This script is only for the development environment.');
@@ -263,6 +281,7 @@ async function main() {
         Recommendation.collection.drop().catch(() => console.log('Recommendation collection not found')),
         Credit.collection.drop().catch(() => console.log('Credit collection not found')), 
         SimilarMovie.collection.drop().catch(() => console.log('SimilarMovie collection not found')),
+        Images.collection.drop().catch(() => console.log('Images collection not found')),
     ]);
 
     console.log('Collections dropped');
@@ -275,6 +294,7 @@ async function main() {
     await loadActorMovies();
     await loadRecommendations();
     await loadSimilarMovies();
+    await loadImages();
 
     console.log('All data loaded');
     await mongoose.disconnect();

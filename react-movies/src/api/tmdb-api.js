@@ -5,86 +5,131 @@ const ACTOR_BASE_URL = "http://localhost:8080/api/actors"; // Actor API base pat
 export const getMovies = async (page = 1, limit = 10) => {
   const response = await fetch(`${BASE_URL}?page=${page}&limit=${limit}`);
   if (!response.ok) throw new Error("Failed to fetch movies");
-  return response.json();
-};
-
-// Fetch single movie details
-export const getMovie = async (movieId) => {
-  if (!movieId) throw new Error("Movie ID is required for fetching details.");
-  const response = await fetch(`${BASE_URL}/${movieId}`);
-  if (!response.ok) throw new Error("Failed to fetch movie details.");
-  return response.json();
-};
-
-// Fetch movie images
-export const getMovieImages = async (param) => {
-  let movieId;
-
-  if (typeof param === 'object' && Array.isArray(param.queryKey)) {
-    // Extract movieId from queryKey
-    movieId = param.queryKey[1]?.id;
-  } else if (typeof param === 'object' && param.id) {
-    // Handle direct object with id property
-    movieId = param.id;
-  } else {
-    // Assume param is the movieId
-    movieId = param;
+  const data = await response.json();
+  if (!Array.isArray(data.results)) {
+    throw new Error("Invalid response structure: Missing or invalid 'results'");
   }
 
-  if (!movieId) {
+  return data.results;
+};
+
+
+// Fetch single movie details
+export const getMovie = async (param) => {
+  let movieId;
+
+  // Handle React Query `queryKey` or direct movie ID
+  if (typeof param === "object" && param.queryKey) {
+    const [, { id }] = param.queryKey; // Extract movie ID from queryKey
+    movieId = id;
+  } else {
+    movieId = param; // Direct movie ID
+  }
+
+  if (!movieId) throw new Error("Movie ID is required for fetching details.");
+
+  const response = await fetch(`${BASE_URL}/${movieId}`);
+  if (!response.ok) throw new Error("Failed to fetch movie details.");
+
+  const movie = await response.json();
+
+  // Validate movie structure
+  if (!movie || !movie.title) {
+    throw new Error("Invalid movie data: Missing 'title'.");
+  }
+
+  return movie;
+};
+
+
+
+// Fetch movie images
+export const getMovieImages = async ({ queryKey }) => {
+  if (!queryKey || queryKey.length < 2) {
+    throw new Error("Invalid queryKey: queryKey is undefined or incomplete.");
+  }
+  
+  const [, { id }] = queryKey; 
+  
+  if (!id) {
     throw new Error("Movie ID is required for fetching images.");
   }
 
-  const id = String(movieId);
-
-  try {
-    const response = await fetch(`${BASE_URL}/${id}/images`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch images for movie ID ${id}`);
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching movie images:', error.message);
-    throw error;
+  const response = await fetch(`${BASE_URL}/${id}/images`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch images for movie ID ${id}`);
   }
+  return response.json();
 };
+
 
 
 // Fetch upcoming movies
 export const getUpcomingMovies = async () => {
   const response = await fetch(`${BASE_URL}/tmdb/upcoming`);
   if (!response.ok) throw new Error("Failed to fetch upcoming movies");
-  return response.json();
+  const data = await response.json();
+
+  if (!data.results || !Array.isArray(data.results)) {
+    throw new Error("Invalid response structure: Missing or invalid 'results'");
+  }
+
+  return data.results;
 };
 
 // Fetch now-playing movies
 export const getNowPlayingMovies = async () => {
-  const response = await fetch(`${BASE_URL}/now-playing`);
+  const response = await fetch(`${BASE_URL}/tmdb/now-playing`);
   if (!response.ok) throw new Error("Failed to fetch now-playing movies");
-  return response.json();
+  const data = await response.json();
+
+  if (!data.results || !Array.isArray(data.results)) {
+    throw new Error("Invalid response structure: Missing or invalid 'results'");
+  }
+
+  return data.results;
 };
 
 // Fetch trending movies
 export const getTrendingMovies = async () => {
-  const response = await fetch(`${BASE_URL}/trending`);
+  const response = await fetch(`${BASE_URL}/tmdb/trending`);
   if (!response.ok) throw new Error("Failed to fetch trending movies");
-  return response.json();
+  const data = await response.json();
+
+  if (!data.results || !Array.isArray(data.results)) {
+    throw new Error("Invalid response structure: Missing or invalid 'results'");
+  }
+
+  return data.results;
 };
 
 // Fetch movie genres
 export const getGenres = async () => {
-  const response = await fetch(`${BASE_URL}/genres`);
+  const response = await fetch(`${BASE_URL}/tmdb/genres`);
   if (!response.ok) throw new Error("Failed to fetch genres");
   return response.json();
 };
 
 // Fetch movie reviews
-export const getMovieReviews = async (movieId) => {
-  if (!movieId) throw new Error("Movie ID is required for fetching reviews.");
-  const response = await fetch(`${BASE_URL}/${movieId}/reviews`);
-  if (!response.ok) throw new Error(`Failed to fetch reviews for movie ID ${movieId}`);
-  return response.json();
+export const getMovieReviews = async ({ queryKey }) => {
+  const [, { id }] = queryKey; // Ensure `queryKey` is properly destructured
+  const response = await fetch(`http://localhost:8080/api/movies/${id}/reviews`);
+
+  if (!response.ok) {
+      throw new Error(`Failed to fetch reviews for movie ID ${id}`);
+  }
+
+  const data = await response.json();
+
+  // Validate response structure
+  if (!data || !Array.isArray(data.results)) {
+      throw new Error("Invalid response structure: Missing or invalid 'results'");
+  }
+
+  return data;
 };
+
+
 
 // Fetch movie recommendations
 export const getMovieRecommendations = async (movieId) => {

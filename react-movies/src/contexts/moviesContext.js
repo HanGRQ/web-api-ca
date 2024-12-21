@@ -10,9 +10,13 @@ const MoviesContextProvider = (props) => {
   // 添加到收藏夹
   const addToFavorites = (movie) => {
     if (!favorites.includes(movie.id)) {
-      setFavorites([...favorites, movie.id]);
+      console.log("Adding movie to favorites:", movie.id); // Debug log
+      setFavorites([...favorites, movie.id]); // Only add unique IDs
+    } else {
+      console.log("Movie already in favorites:", movie.id); // Debug log
     }
   };
+  
 
   // 从收藏夹移除
   const removeFromFavorites = (movie) => {

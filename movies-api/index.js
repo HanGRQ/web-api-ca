@@ -10,6 +10,7 @@ import reviewsRouter from './api/reviews';
 import recommendationsRouter from './api/recommendations';
 import creditsRouter from './api/credits';
 import actorsRouter from './api/actor';
+import imagesRouter from './api/images';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/recommendations', recommendationsRouter);
 app.use('/api/credits', creditsRouter);
 app.use('/api/actors', actorsRouter);
+app.use('/api/images', imagesRouter);
 
 app.use(defaultErrHandler);
 

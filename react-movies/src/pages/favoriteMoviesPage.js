@@ -10,31 +10,32 @@ import WriteReview from "../components/cardIcons/writeReview";
 const FavoriteMoviesPage = () => {
   const { favorites: movieIds } = useContext(MoviesContext);
 
-  // 使用 useQueries 获取电影数据
+  // Log the movieIds for debugging
+  console.log("Favorite Movie IDs:", movieIds);
+
+  // Use `useQueries` to fetch movies by their IDs
   const favoriteMovieQueries = useQueries(
-    movieIds.map((movieId) => ({
-      queryKey: ["movie", { id: movieId }],
+    [...new Set(movieIds)].map((id) => ({
+      queryKey: ["movie", { id }],
       queryFn: getMovie,
     }))
   );
 
-  // 检查是否仍有数据在加载中
+  // Check if queries are still loading
   const isLoading = favoriteMovieQueries.some((q) => q.isLoading);
 
   if (isLoading) {
     return <Spinner />;
   }
 
-  // 提取电影数据，并处理 genre_ids
-  const movies = favoriteMovieQueries.map((q) => {
-    if (q.data) {
-      q.data.genre_ids = q.data.genres.map((g) => g.id);
-      return q.data;
-    }
-    return null;
-  }).filter((movie) => movie !== null);
+  // Extract movie data and ensure it is not null
+  const movies = favoriteMovieQueries
+  .map((q) => q.data)
+  .filter((movie, index, self) => movie && self.findIndex(m => m.id === movie.id) === index);
 
-  console.log("Loaded Movies:", movies);
+if (movies.length === 0) {
+  return <h2>No favorite movies added yet!</h2>;
+}
 
   return (
     <PageTemplate

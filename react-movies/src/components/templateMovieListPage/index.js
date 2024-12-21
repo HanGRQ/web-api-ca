@@ -27,14 +27,17 @@ function MovieListPageTemplate({ movies, title, action }) {
 
     const genreId = Number(genreFilter);
 
-    let displayedMovies = Array.isArray(movies)
-      ? movies
+    const uniqueMovies = movies.filter(
+        (movie, index, self) => movie && self.findIndex((m) => m.id === movie.id) === index
+      );      
+
+    let displayedMovies = uniqueMovies
+        .filter((m) => m && m.title) // Filter out undefined or invalid movies
         .filter((m) => m.title.toLowerCase().includes(nameFilter.toLowerCase()))
         .filter((m) => (genreId > 0 ? m.genre_ids.includes(genreId) : true))
         .filter((m) => (starRateFilter ? m.vote_average >= Number(starRateFilter) : true))
         .filter((m) => (releaseYearFilter ? m.release_date.startsWith(releaseYearFilter) : true))
-        .filter((m) => (languageFilter ? m.original_language === languageFilter : true))
-      : [];
+        .filter((m) => (languageFilter ? m.original_language === languageFilter : true));
 
 
     // 排序逻辑

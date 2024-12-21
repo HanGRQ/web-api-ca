@@ -10,9 +10,44 @@ import {
     getMovieRecommendations,
     getMovieCredits,
     getSimilarMovies,
+    getMovieImages
 } from '../tmdb-api';
 
 const router = express.Router();
+
+router.get('/tmdb/upcoming', asyncHandler(async (req, res) => {
+    const upcomingMovies = await getUpcomingMovies();
+    console.log("Upcoming Movies Response:", upcomingMovies); // Debug log
+    if (!upcomingMovies || !upcomingMovies.results) {
+        return res.status(400).json({ message: "Invalid response structure: Missing or invalid 'results'" });
+    }
+    res.status(200).json(upcomingMovies); // Ensure the entire response is returned
+}));
+
+router.get('/tmdb/now-playing', asyncHandler(async (req, res) => {
+    const nowPlayingMovies = await getNowPlayingMovies();
+    console.log("Now Playing Movies Response:", nowPlayingMovies); // Debug log
+    if (!nowPlayingMovies || !nowPlayingMovies.results) {
+        return res.status(400).json({ message: "Invalid response structure: Missing or invalid 'results'" });
+    }
+    res.status(200).json(nowPlayingMovies); // Ensure the entire response is returned
+}));
+
+router.get('/tmdb/trending', asyncHandler(async (req, res) => {
+    const trendingMovies = await getTrendingMovies();
+    console.log("Trending Movies Response:", trendingMovies); // Debug log
+    if (!trendingMovies || !trendingMovies.results) {
+        return res.status(400).json({ message: "Invalid response structure: Missing or invalid 'results'" });
+    }
+    res.status(200).json(trendingMovies); // Ensure the entire response is returned
+}));
+
+
+// Route: Movie genres
+router.get('/tmdb/genres', asyncHandler(async (req, res) => {
+    const genres = await getMovieGenres();
+    res.status(200).json(genres.genres);
+}));
 
 // Middleware: Validate and parse movie ID
 router.param('id', (req, res, next, id) => {
@@ -28,7 +63,7 @@ router.param('id', (req, res, next, id) => {
 
 // Route: Paginated movies
 router.get('/', asyncHandler(async (req, res) => {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 30 } = req.query;
     [page, limit] = [+page, +limit];
 
     const [total_results, results] = await Promise.all([
@@ -48,19 +83,28 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // Route: Movie details
 router.get('/:id', asyncHandler(async (req, res) => {
-    const movie = await movieModel.findOne({ id: req.movieId });
-    if (!movie) {
-        return res.status(404).json({
-            message: "Movie not found.",
-            status_code: 404,
-        });
+    const movieId = parseInt(req.params.id, 10);
+    if (isNaN(movieId)) {
+        return res.status(400).json({ message: "Invalid movie ID." });
     }
+
+    const movie = await movieModel.findOne({ id: movieId });
+    if (!movie) {
+        return res.status(404).json({ message: "Movie not found." });
+    }
+
     res.status(200).json(movie);
 }));
+
 
 // Route: Movie reviews
 router.get('/:id/reviews', asyncHandler(async (req, res) => {
     const reviewsData = await getMovieReviews(req.movieId);
+    if (!reviewsData || !Array.isArray(reviewsData.results)) {
+        return res.status(500).json({
+            message: "Invalid response structure: Missing or invalid 'results'",
+        });
+    }
     res.status(200).json(reviewsData.results);
 }));
 
@@ -82,29 +126,12 @@ router.get('/:id/credits', asyncHandler(async (req, res) => {
     res.status(200).json(credits);
 }));
 
-// Route: Upcoming movies
-router.get('/tmdb/upcoming', asyncHandler(async (req, res) => {
-    const upcomingMovies = await getUpcomingMovies();
-    res.status(200).json(upcomingMovies.results);
+// Route: Movie Images
+router.get('/:id/images', asyncHandler(async (req, res) => {
+    const images = await getMovieImages(req.movieId);
+    res.status(200).json(images);
 }));
 
-// Route: Now-playing movies
-router.get('/tmdb/now-playing', asyncHandler(async (req, res) => {
-    const nowPlayingMovies = await getNowPlayingMovies();
-    res.status(200).json(nowPlayingMovies.results);
-}));
-
-// Route: Trending movies
-router.get('/tmdb/trending', asyncHandler(async (req, res) => {
-    const trendingMovies = await getTrendingMovies();
-    res.status(200).json(trendingMovies.results);
-}));
-
-// Route: Movie genres
-router.get('/tmdb/genres', asyncHandler(async (req, res) => {
-    const genres = await getMovieGenres();
-    res.status(200).json(genres.genres);
-}));
 
 // Error handling middleware
 router.use((err, req, res, next) => {
