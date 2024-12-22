@@ -18,10 +18,7 @@ const MovieDetailsPage = () => {
   // 修改所有的 useQuery 调用，直接传递 id 参数给 API 函数
   const { data: movie, error, isLoading, isError } = useQuery(
     ["movie", movieId],
-    () => getMovie(movieId),
-    {
-      enabled: !!id
-    }
+    () => getMovie(movieId)
   );
 
   const { data: images } = useQuery(

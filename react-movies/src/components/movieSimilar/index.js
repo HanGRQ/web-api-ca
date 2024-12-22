@@ -1,4 +1,5 @@
-import Table from "@mui/material/Table"; 
+import React from "react";
+import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
@@ -7,14 +8,26 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
-import { getSimilarMovies } from "../../api/tmdb-api"; // 确保此 API 已定义
+import { getSimilarMovies } from "../../api/tmdb-api";
 import Spinner from '../spinner';
+import Typography from "@mui/material/Typography";
 
 export default function MovieSimilar({ movie }) {
-  const { data, error, isLoading, isError } = useQuery(
-    ["similarMovies", { id: movie.id }],
-    getSimilarMovies
+  const { data: similar, error, isLoading, isError } = useQuery(
+    ["similarMovies", { id: movie?.id }],
+    getSimilarMovies,
+    {
+      enabled: !!movie?.id,
+    }
   );
+
+  if (!movie) {
+    return (
+      <Typography variant="h6" component="p">
+        No movie data available
+      </Typography>
+    );
+  }
 
   if (isLoading) {
     return <Spinner />;
@@ -24,7 +37,23 @@ export default function MovieSimilar({ movie }) {
     return <h1>{error.message}</h1>;
   }
 
-  const similarMovies = data.results;
+  if (!similar) {
+    return (
+      <Typography variant="h6" component="p">
+        No similar movies available
+      </Typography>
+    );
+  }
+
+  const similarData = similar.results || similar;
+
+  if (!similarData || similarData.length === 0) {
+    return (
+      <Typography variant="h6" component="p">
+        No similar movies available for this movie
+      </Typography>
+    );
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -37,16 +66,14 @@ export default function MovieSimilar({ movie }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {similarMovies.map((sim) => (
+          {similarData.map((sim) => (
             <TableRow key={sim.id}>
               <TableCell component="th" scope="row">
                 {sim.title}
               </TableCell>
               <TableCell align="center">{sim.release_date}</TableCell>
               <TableCell align="right">
-                <Link to={`/movies/${sim.id}`}>
-                  Details
-                </Link>
+                <Link to={`/movies/${sim.id}`}>Details</Link>
               </TableCell>
             </TableRow>
           ))}

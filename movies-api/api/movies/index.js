@@ -63,22 +63,24 @@ router.param('id', (req, res, next, id) => {
 
 // Route: Paginated movies
 router.get('/', asyncHandler(async (req, res) => {
-    let { page = 1, limit = 30 } = req.query;
+    let { page = 1, limit = 8 } = req.query;
     [page, limit] = [+page, +limit];
 
     const [total_results, results] = await Promise.all([
-        movieModel.estimatedDocumentCount(),
-        movieModel.find().limit(limit).skip((page - 1) * limit),
+        movieModel.estimatedDocumentCount(), 
+        movieModel.find().limit(limit).skip((page - 1) * limit) 
     ]);
 
     const total_pages = Math.ceil(total_results / limit);
 
-    res.status(200).json({
+    const returnObject = {
         page,
         total_pages,
         total_results,
-        results,
-    });
+        results
+    };
+
+    res.status(200).json(returnObject);
 }));
 
 // Route: Movie details
@@ -99,14 +101,21 @@ router.get('/:id', asyncHandler(async (req, res) => {
 
 // Route: Movie reviews
 router.get('/:id/reviews', asyncHandler(async (req, res) => {
-    const reviewsData = await getMovieReviews(req.movieId);
-    if (!reviewsData || !Array.isArray(reviewsData.results)) {
-        return res.status(500).json({
-            message: "Invalid response structure: Missing or invalid 'results'",
-        });
+    const movieId = req.params.id;
+
+    if (!movieId || isNaN(movieId)) {
+        return res.status(400).json({ message: "Invalid movie ID." });
     }
-    res.status(200).json(reviewsData.results);
+
+    const reviewsData = await getMovieReviews(movieId);
+
+    if (!reviewsData || !Array.isArray(reviewsData.results)) {
+        return res.status(500).json({ message: "Failed to fetch reviews." });
+    }
+
+    res.status(200).json({ results: reviewsData.results });
 }));
+
 
 // Route: Movie recommendations
 router.get('/:id/recommendations', asyncHandler(async (req, res) => {

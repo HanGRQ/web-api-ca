@@ -10,32 +10,30 @@ import WriteReview from "../components/cardIcons/writeReview";
 const FavoriteMoviesPage = () => {
   const { favorites: movieIds } = useContext(MoviesContext);
 
-  // Log the movieIds for debugging
-  console.log("Favorite Movie IDs:", movieIds);
+  const uniqueIds = [...new Set(movieIds)];
 
-  // Use `useQueries` to fetch movies by their IDs
   const favoriteMovieQueries = useQueries(
-    [...new Set(movieIds)].map((id) => ({
-      queryKey: ["movie", { id }],
-      queryFn: getMovie,
+    uniqueIds.map((movieId) => ({
+      queryKey: ["movie", { id: movieId }],
+      queryFn: () => getMovie(movieId),
     }))
   );
 
-  // Check if queries are still loading
   const isLoading = favoriteMovieQueries.some((q) => q.isLoading);
 
   if (isLoading) {
     return <Spinner />;
   }
 
-  // Extract movie data and ensure it is not null
-  const movies = favoriteMovieQueries
-  .map((q) => q.data)
-  .filter((movie, index, self) => movie && self.findIndex(m => m.id === movie.id) === index);
+  const allMovies = favoriteMovieQueries
+    .filter((query) => query.data)
+    .map((query) => query.data);
 
-if (movies.length === 0) {
-  return <h2>No favorite movies added yet!</h2>;
-}
+  const movies = [...new Map(allMovies.map(movie => [movie.id, movie])).values()];
+
+  if (movies.length === 0) {
+    return <h2>No favorite movies added yet!</h2>;
+  }
 
   return (
     <PageTemplate
@@ -47,7 +45,6 @@ if (movies.length === 0) {
           <WriteReview movie={movie} />
         </>
       )}
-      layoutConfig={{ xs: 12, sm: 6, md: 4, lg: 3 }} 
     />
   );
 };

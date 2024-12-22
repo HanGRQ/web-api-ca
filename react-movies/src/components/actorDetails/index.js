@@ -1,13 +1,13 @@
-import React, { useState } from "react"; 
+import React, { useState } from "react";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Chip from "@mui/material/Chip";
 import Drawer from "@mui/material/Drawer";
 import Fab from "@mui/material/Fab";
 import NavigationIcon from "@mui/icons-material/Navigation";
-import ActorMovies from "../actorMovies";  
+import ActorMovies from "../actorMovies";
 import { useQuery } from "react-query";
-import { getActorDetails } from "../../api/tmdb-api"; 
+import { getActorDetails } from "../../api/tmdb-api";
 import Spinner from "../spinner";
 
 const root = {
@@ -23,17 +23,36 @@ const chip = { margin: 0.5 };
 const ActorDetails = ({ actorId }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const { data: actor, isLoading, isError } = useQuery(
+  const { data: actor, error, isLoading, isError } = useQuery(
     ["actorDetails", { id: actorId }],
-    () => getActorDetails(actorId)
+    getActorDetails,
+    {
+      enabled: !!actorId,
+    }
   );
+
+  if (!actorId) {
+    return (
+      <Typography variant="h6" component="p">
+        No actor ID provided
+      </Typography>
+    );
+  }
 
   if (isLoading) {
     return <Spinner />;
   }
 
   if (isError) {
-    return <Typography variant="h5">Error fetching actor details</Typography>;
+    return <Typography variant="h5">Error: {error.message}</Typography>;
+  }
+
+  if (!actor) {
+    return (
+      <Typography variant="h6" component="p">
+        No actor details available
+      </Typography>
+    );
   }
 
   return (
@@ -43,19 +62,24 @@ const ActorDetails = ({ actorId }) => {
       </Typography>
 
       <Typography variant="h6" component="p">
-        {actor.biography}
+        {actor.biography || "No biography available"}
       </Typography>
 
       <Paper component="ul" sx={{ ...root }}>
         <li>
-          <Chip label={`Born: ${actor.birthday}`} sx={{ ...chip }} />
+          <Chip 
+            label={`Born: ${actor.birthday || 'Unknown'}`} 
+            sx={{ ...chip }} 
+          />
         </li>
         <li>
-          <Chip label={`Place of Birth: ${actor.place_of_birth}`} sx={{ ...chip }} />
+          <Chip 
+            label={`Place of Birth: ${actor.place_of_birth || 'Unknown'}`} 
+            sx={{ ...chip }} 
+          />
         </li>
       </Paper>
 
-      {/* Floating Button for Movies */}
       <Fab
         color="secondary"
         variant="extended"
@@ -65,15 +89,19 @@ const ActorDetails = ({ actorId }) => {
           bottom: '1em',
           right: '1em',
           backgroundColor: 'purple',
+          height: '30px',
         }}
       >
         <NavigationIcon />
         Movies
       </Fab>
 
-      {/* Drawer for Movies */}
-      <Drawer anchor="top" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <ActorMovies actorId={actorId} />
+      <Drawer 
+        anchor="top" 
+        open={drawerOpen} 
+        onClose={() => setDrawerOpen(false)}
+      >
+        {actorId && <ActorMovies actorId={actorId} />}
       </Drawer>
     </>
   );

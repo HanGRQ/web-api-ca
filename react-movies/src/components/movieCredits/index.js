@@ -1,20 +1,33 @@
-import Table from "@mui/material/Table";  
+import React from "react";
+import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
-import { getMovieCredits } from "../../api/tmdb-api"; 
+import { getMovieCredits } from "../../api/tmdb-api";
 import Spinner from '../spinner';
-import { Link } from "react-router-dom"; 
+import Typography from "@mui/material/Typography";
 
 export default function MovieCredits({ movie }) {
-  const { data, error, isLoading, isError } = useQuery(
-    ["credits", { id: movie.id }],
-    getMovieCredits
+  const { data: credits, error, isLoading, isError } = useQuery(
+    ["credits", { id: movie?.id }],
+    getMovieCredits,
+    {
+      enabled: !!movie?.id,
+    }
   );
+
+  if (!movie) {
+    return (
+      <Typography variant="h6" component="p">
+        No movie data available
+      </Typography>
+    );
+  }
 
   if (isLoading) {
     return <Spinner />;
@@ -24,7 +37,23 @@ export default function MovieCredits({ movie }) {
     return <h1>{error.message}</h1>;
   }
 
-  const credits = data.cast;
+  if (!credits) {
+    return (
+      <Typography variant="h6" component="p">
+        No credits available
+      </Typography>
+    );
+  }
+
+  const castData = credits.cast || credits;
+
+  if (!castData || castData.length === 0) {
+    return (
+      <Typography variant="h6" component="p">
+        No cast information available for this movie
+      </Typography>
+    );
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -37,10 +66,10 @@ export default function MovieCredits({ movie }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {credits.map((credit) => (
+          {castData.map((credit) => (
             <TableRow key={credit.id}>
               <TableCell component="th" scope="row">
-                <Link to={`/actor/${credit.id}`}>{credit.name}</Link> 
+                <Link to={`/actor/${credit.id}`}>{credit.name}</Link>
               </TableCell>
               <TableCell align="center">{credit.character}</TableCell>
               <TableCell align="right">

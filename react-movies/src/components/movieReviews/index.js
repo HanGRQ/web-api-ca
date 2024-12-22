@@ -1,68 +1,94 @@
 import React from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import { Link } from "react-router-dom";
+import { getMovieReviews } from "../../api/tmdb-api";
+import { excerpt } from "../../util";
+import { useQuery } from "react-query";
+import Spinner from "../spinner";
 import Typography from "@mui/material/Typography";
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import Divider from "@mui/material/Divider";
 
-const MovieReviews = ({ reviews }) => {
-  if (!reviews || reviews.length === 0) {
+export default function MovieReviews({ movie }) {
+
+  const { data: reviews, error, isLoading, isError } = useQuery(
+    ["reviews", { id: movie.id }],
+    getMovieReviews,
+    {
+      enabled: !!movie.id,
+    }
+  );
+
+  if (!movie) {
     return (
       <Typography variant="h6" component="p">
-        No reviews available for this movie.
+        No movie data available
+      </Typography>
+    );
+  }
+
+  if (isLoading) {
+    return <Spinner />;
+  }
+
+  if (isError) {
+    return <h1>{error.message}</h1>;
+  }
+
+  if (!reviews) {
+    return (
+      <Typography variant="h6" component="p">
+        No reviews available
+      </Typography>
+    );
+  }
+
+  const reviewsData = reviews.results || reviews;
+
+  if (!reviewsData || reviewsData.length === 0) {
+    return (
+      <Typography variant="h6" component="p">
+        No reviews available for this movie
       </Typography>
     );
   }
 
   return (
-    <Box sx={{ padding: "16px" }}>
-      <Typography variant="h5" component="h3" gutterBottom>
-        Movie Reviews
-      </Typography>
-      <List>
-        {reviews.map((review, index) => (
-          <React.Fragment key={index}>
-            <ListItem alignItems="flex-start">
-              <Box display="flex" flexDirection="column" width="100%">
-                {/* Author details */}
-                <Box display="flex" alignItems="center" marginBottom="8px">
-                  <Avatar
-                    src={
-                      review.author_details?.avatar_path
-                        ? `https://image.tmdb.org/t/p/w500${review.author_details.avatar_path}`
-                        : "/default-avatar.png" // Fallback if no avatar
-                    }
-                    alt={review.author}
-                    sx={{ marginRight: "12px" }}
-                  />
-                  <Typography variant="subtitle1" component="span">
-                    <strong>{review.author}</strong>
-                  </Typography>
-                </Box>
-
-                {/* Review content */}
-                <Typography variant="body1" component="p">
-                  {review.content}
-                </Typography>
-
-                {/* Rating and date */}
-                <Box display="flex" justifyContent="space-between" marginTop="8px">
-                  <Typography variant="caption" color="text.secondary">
-                    Rating: {review.author_details?.rating || "N/A"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Posted: {new Date(review.created_at).toLocaleDateString()}
-                  </Typography>
-                </Box>
-              </Box>
-            </ListItem>
-            <Divider variant="fullWidth" />
-          </React.Fragment>
-        ))}
-      </List>
-    </Box>
+    <TableContainer component={Paper}>
+      <Table sx={{ minWidth: 550 }} aria-label="reviews table">
+        <TableHead>
+          <TableRow>
+            <TableCell>Author</TableCell>
+            <TableCell align="center">Excerpt</TableCell>
+            <TableCell align="right">More</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {reviewsData.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell component="th" scope="row">
+                {r.author}
+              </TableCell>
+              <TableCell>{excerpt(r.content)}</TableCell>
+              <TableCell>
+                <Link
+                  to={`/reviews/${movie.id}/${r.id}`}
+                  state={{
+                    review: r,
+                    movie: movie,
+                  }}
+                >
+                  Full Review
+                </Link>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
-};
-
-export default MovieReviews;
+}

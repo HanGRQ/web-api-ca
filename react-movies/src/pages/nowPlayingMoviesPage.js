@@ -12,7 +12,7 @@ const NowPlayingMoviesPage = () => {
   if (isLoading) return <Spinner />;
   if (isError) return <h1>{error.message}</h1>;
 
-  const movies = data?.results || data;
+  const movies = data;
 
   return (
     <PageTemplate

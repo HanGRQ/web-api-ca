@@ -20,8 +20,6 @@ import { FacebookIcon, TwitterIcon } from "react-share";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
-import { useQuery } from "react-query";
-import { getMovieReviews } from "../../api/tmdb-api";
 
 const root = {
   display: "flex",
@@ -39,13 +37,12 @@ const MovieDetails = ({ movie }) => {
   const [creditsOpen, setCreditsOpen] = useState(false);
   const [similarOpen, setSimilarOpen] = useState(false);
 
-  const { data: reviews, isLoading, isError } = useQuery(
-    ["reviews", { id: movie.id }],
-    getMovieReviews
-  );
-
   if (!movie) {
-    return <div>Loading...</div>;
+    return (
+      <Typography variant="h6" component="p">
+        Loading movie details...
+      </Typography>
+    );
   }
 
   return (
@@ -204,13 +201,7 @@ const MovieDetails = ({ movie }) => {
 
       {/* Drawers */}
       <Drawer anchor="top" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        {isLoading ? (
-          <div>Loading reviews...</div>
-        ) : isError ? (
-          <div>Failed to load reviews.</div>
-        ) : (
-          <MovieReviews reviews={reviews.results} />
-        )}
+        {movie && <MovieReviews movie={movie} />}
       </Drawer>
 
       <Drawer anchor="top" open={creditsOpen} onClose={() => setCreditsOpen(false)}>

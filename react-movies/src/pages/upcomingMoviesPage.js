@@ -7,12 +7,12 @@ import AddToFavoritesIcon from "../components/cardIcons/addToFavorites";
 import AddToWatchlistIcon from "../components/cardIcons/addToWatchlist";
 
 const UpcomingMoviesPage = () => {
-  const { data, error, isLoading, isError } = useQuery("discover", getUpcomingMovies);
+  const { data, error, isLoading, isError } = useQuery("upcoming", getUpcomingMovies);
 
   if (isLoading) return <Spinner />;
   if (isError) return <h1>{error.message}</h1>;
 
-  const movies = data?.results || data;
+  const movies = data.results || data;
 
   return (
     <PageTemplate

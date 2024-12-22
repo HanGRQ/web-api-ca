@@ -3,30 +3,57 @@ import PageTemplate from "../components/templateActorPage";
 import Spinner from "../components/spinner";
 import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
-import { getActorDetails, getActorMovies } from "../api/tmdb-api"; // 修改为后端 API
+import { getActorDetails } from "../api/tmdb-api";
+import Typography from "@mui/material/Typography";
+import ActorMovies from "../components/actorMovies";  
 
 const ActorDetailsPage = () => {
   const { id } = useParams();
 
-  const { data: actor, isLoading: actorLoading } = useQuery(["actor", { id }], () =>
-    getActorDetails(id)
+  const { 
+    data: actor, 
+    error: actorError, 
+    isLoading: isActorLoading, 
+    isError: isActorError 
+  } = useQuery(
+    ["actor", { id }],
+    getActorDetails,
+    {
+      enabled: !!id,
+    }
   );
-  const { data: movies } = useQuery(["actorMovies", { id }], () => getActorMovies(id));
 
-  if (actorLoading) return <Spinner />;
+  if (!id) {
+    return (
+      <Typography variant="h6" component="p">
+        No actor ID provided
+      </Typography>
+    );
+  }
+
+  if (isActorLoading) {
+    return <Spinner />;
+  }
+
+  if (isActorError) {
+    return <Typography variant="h5">Error: {actorError.message}</Typography>;
+  }
+
+  if (!actor) {
+    return (
+      <Typography variant="h6" component="p">
+        No actor details available
+      </Typography>
+    );
+  }
 
   return (
     <PageTemplate actor={actor}>
-      <h2>{actor.name}</h2>
-      <p>{actor.biography}</p>
-      <h3>Movies</h3>
-      <ul>
-        {movies?.map((movie) => (
-          <li key={movie.id}>
-            {movie.title} ({movie.release_date})
-          </li>
-        ))}
-      </ul>
+      <Typography variant="h4" component="h3" sx={{ mt: 4, mb: 2 }}>
+        Movies
+      </Typography>
+
+      <ActorMovies actorId={id} />
     </PageTemplate>
   );
 };

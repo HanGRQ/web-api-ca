@@ -31,7 +31,6 @@ const WatchlistPage = () => {
       title="My Watchlist"
       movies={movies}
       action={(movie) => <RemoveFromWatchlist movie={movie} />}
-      layoutConfig={{ xs: 12, sm: 6, md: 4, lg: 3 }}
     />
   );
 };

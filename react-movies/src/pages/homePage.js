@@ -12,12 +12,13 @@ const HomePage = () => {
   if (isLoading) return <Spinner />;
   if (isError) return <h1>{error.message}</h1>;
 
-  const movies = data?.results || data;
+  const movies = data || [];
 
   return (
     <PageTemplate
       title="Discover Movies"
       movies={movies}
+      apiType="discover"
       action={(movie) => (
         <>
           <AddToFavoritesIcon movie={movie} />

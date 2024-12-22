@@ -48,13 +48,28 @@ const releaseYearOptions = [
 ];
 
 export default function FilterMoviesCard(props) {
-  const { data, error, isLoading, isError } = useQuery("genres", getGenres);
+  const { data: genresData, error, isLoading, isError } = useQuery("genres", getGenres);
 
-  if (isLoading) return <Spinner />;
-  if (isError) return <h1>{error.message}</h1>;
+  if (isLoading) {
+    return <Spinner />;
+  }
 
-  const genres = data.genres;
-  if (genres[0].name !== "All") {
+  if (isError) {
+    return (
+      <Card>
+        <CardContent>
+          <Typography color="error">
+            Error loading genres: {error.message}
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Ensure we have the genres data properly structured
+  const genres = genresData?.genres || [];
+  // Add "All" option if it doesn't exist and we have genres
+  if (genres.length > 0 && genres[0].name !== "All") {
     genres.unshift({ id: "0", name: "All" });
   }
 
@@ -68,7 +83,6 @@ export default function FilterMoviesCard(props) {
   const handleLanguageChange = (e) => handleChange(e, "language", e.target.value);
   const handleStarRateChange = (e) => handleChange(e, "starRate", e.target.value);
   const handleReleaseYearChange = (e) => handleChange(e, "releaseYear", e.target.value);
-  // 新增排序字段和排序顺序的处理函数
   const handleSortFieldChange = (e) => handleChange(e, "sortField", e.target.value);
   const handleSortOrderChange = (e) => handleChange(e, "sortOrder", e.target.value);
 
