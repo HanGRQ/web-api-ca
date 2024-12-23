@@ -15,31 +15,43 @@ import {
 
 const router = express.Router();
 
-router.get('/tmdb/upcoming', asyncHandler(async (req, res) => {
-    const upcomingMovies = await getUpcomingMovies();
-    console.log("Upcoming Movies Response:", upcomingMovies); // Debug log
-    if (!upcomingMovies || !upcomingMovies.results) {
+const paginateResults = async (getMoviesFunction, req, res) => {
+    let { page = 1, limit = 8 } = req.query;
+    [page, limit] = [+page, +limit];
+
+    // 调用 TMDB API 获取所有数据
+    const moviesResponse = await getMoviesFunction();
+
+    if (!moviesResponse || !moviesResponse.results) {
         return res.status(400).json({ message: "Invalid response structure: Missing or invalid 'results'" });
     }
-    res.status(200).json(upcomingMovies); // Ensure the entire response is returned
+
+    const total_results = moviesResponse.results.length;
+    const total_pages = Math.ceil(total_results / limit);
+
+    // 分页处理：对返回的结果进行切片
+    const paginatedResults = moviesResponse.results.slice((page - 1) * limit, page * limit);
+
+    const returnObject = {
+        page,
+        total_pages,
+        total_results,
+        results: paginatedResults,
+    };
+
+    res.status(200).json(returnObject);
+};
+
+router.get('/tmdb/upcoming', asyncHandler(async (req, res) => {
+    await paginateResults(getUpcomingMovies, req, res);
 }));
 
 router.get('/tmdb/now-playing', asyncHandler(async (req, res) => {
-    const nowPlayingMovies = await getNowPlayingMovies();
-    console.log("Now Playing Movies Response:", nowPlayingMovies); // Debug log
-    if (!nowPlayingMovies || !nowPlayingMovies.results) {
-        return res.status(400).json({ message: "Invalid response structure: Missing or invalid 'results'" });
-    }
-    res.status(200).json(nowPlayingMovies); // Ensure the entire response is returned
+    await paginateResults(getNowPlayingMovies, req, res);
 }));
 
 router.get('/tmdb/trending', asyncHandler(async (req, res) => {
-    const trendingMovies = await getTrendingMovies();
-    console.log("Trending Movies Response:", trendingMovies); // Debug log
-    if (!trendingMovies || !trendingMovies.results) {
-        return res.status(400).json({ message: "Invalid response structure: Missing or invalid 'results'" });
-    }
-    res.status(200).json(trendingMovies); // Ensure the entire response is returned
+    await paginateResults(getTrendingMovies, req, res);
 }));
 
 

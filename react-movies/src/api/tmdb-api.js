@@ -1,6 +1,7 @@
 const BASE_URL = "http://localhost:8080/api/movies"; // Backend API base path
 const ACTOR_BASE_URL = "http://localhost:8080/api/actors"; // Actor API base path
 
+
 // Fetch movie list with pagination
 export const getMovies = async (page = 1, limit = 8) => {
   const response = await fetch(`${BASE_URL}?page=${page}&limit=${limit}`);
@@ -73,9 +74,10 @@ export const getMovieImages = async ({ queryKey }) => {
 };
 
 
+
 // Fetch upcoming movies
-export const getUpcomingMovies = async () => {
-  const response = await fetch(`${BASE_URL}/tmdb/upcoming`);
+export const getUpcomingMovies = async (page = 1) => {
+  const response = await fetch(`${BASE_URL}/tmdb/upcoming?page=${page}`);
   if (!response.ok) throw new Error("Failed to fetch upcoming movies");
   const data = await response.json();
 
@@ -83,18 +85,19 @@ export const getUpcomingMovies = async () => {
     throw new Error("Invalid response structure: Missing or invalid 'results'");
   }
 
+  // 返回完整的分页数据
   return {
     results: data.results,
     page: data.page,
     total_pages: data.total_pages,
-    total_results: data.total_results,
-    dates: data.dates || null,
+    total_results: data.total_results
   };
 };
 
+
 // Fetch now-playing movies
-export const getNowPlayingMovies = async () => {
-  const response = await fetch(`${BASE_URL}/tmdb/now-playing`);
+export const getNowPlayingMovies = async (page = 1) => {
+  const response = await fetch(`${BASE_URL}/tmdb/now-playing?page=${page}`);
   if (!response.ok) throw new Error("Failed to fetch now-playing movies");
   const data = await response.json();
 
@@ -106,14 +109,14 @@ export const getNowPlayingMovies = async () => {
     results: data.results,
     page: data.page,
     total_pages: data.total_pages,
-    total_results: data.total_results,
-    dates: data.dates || null, // 确保字段存在
+    total_results: data.total_results
   };
 };
 
+
 // Fetch trending movies
-export const getTrendingMovies = async () => {
-  const response = await fetch(`${BASE_URL}/tmdb/trending`);
+export const getTrendingMovies = async (page = 1) => {
+  const response = await fetch(`${BASE_URL}/tmdb/trending?page=${page}`);
   if (!response.ok) throw new Error("Failed to fetch trending movies");
   const data = await response.json();
 
@@ -123,12 +126,10 @@ export const getTrendingMovies = async () => {
 
   return {
     results: data.results,
-    page: data.page,
-    total_pages: data.total_pages,
-    total_results: data.total_results,
-    dates: null, // 确保一致性，即使无 `dates`
+    totalPages: data.total_pages || 1,
   };
 };
+
 
 // Fetch movie genres
 export const getGenres = async () => {

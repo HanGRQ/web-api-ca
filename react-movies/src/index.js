@@ -32,8 +32,8 @@ const queryClient = new QueryClient({
 
 // PrivateRoute component to protect routes
 const PrivateRoute = ({ element }) => {
-  const { user } = useAuth();
-  return user ? element : <Navigate to="/login" replace />;
+  const { isAuthenticated } = useAuth(); 
+  return isAuthenticated ? element : <Navigate to="/login" replace />;
 };
 
 // AppContent component to conditionally render SiteHeader based on location

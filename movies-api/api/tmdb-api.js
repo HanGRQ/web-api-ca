@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 export const getMovies = async () => {
     try {
         const response = await fetch(
-            `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.TMDB_KEY}&language=en-US&page=${page}`
+            `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.TMDB_KEY}&language=en-US`
         );
 
         if (!response.ok) {
@@ -217,5 +217,7 @@ export const getMovieImages = async (movieId) => {
         throw error;
     }
 };
+
+
 
 
