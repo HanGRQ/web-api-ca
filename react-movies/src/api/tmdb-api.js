@@ -50,11 +50,15 @@ export const getMovie = async (param) => {
 
 
 // Fetch movie images
-export const getMovieImages = async ({ queryKey }) => {
-  const [, { id }] = queryKey || [null, { id: null }];
+export const getMovieImages = async (queryKey) => {
+  const queryKey1 = queryKey?.queryKey
+  let [, { id }] = queryKey1 || [null, { id: null }];
+
   
   if (!id) {
-    throw new Error('Movie ID is required to fetch images');
+    console.log(window.location.pathname.match(/\d+/)[0])
+    id = +window.location.pathname.match(/\d+/)[0]
+    // throw new Error('Movie ID is required to fetch images');
   }
 
   try {

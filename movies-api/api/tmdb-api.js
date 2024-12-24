@@ -205,6 +205,7 @@ export const getActorMovies = async (actorId) => {
     }
 };
 
+// Backend api of getMovieImages
 export const getMovieImages = async (movieId) => {
     try {
         const response = await fetch(

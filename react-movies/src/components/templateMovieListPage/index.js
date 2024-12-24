@@ -100,11 +100,11 @@ function MovieListPageTemplate({
 
     return (
         <Grid container direction="column">
-            <Grid item xs={12}>
+            <Grid item={true.toString()} xs={12}>
                 <Header title={title} />
             </Grid>
             <Grid container direction="column" alignItems="center" sx={{ padding: "20px" }}>
-                <Grid item>
+                <Grid item={true.toString()}>
                     <Button
                         variant="contained"
                         onClick={() => setFilterVisible(!filterVisible)}
@@ -114,7 +114,7 @@ function MovieListPageTemplate({
                     </Button>
                 </Grid>
                 <Slide direction="down" in={filterVisible} mountOnEnter unmountOnExit>
-                    <Grid item xs={12} sx={{ padding: "20px" }}>
+                    <Grid item={true.toString()} xs={12} sx={{ padding: "20px" }}>
                         <FilterCard
                             onUserInput={handleChange}
                             titleFilter={nameFilter}
@@ -127,12 +127,12 @@ function MovieListPageTemplate({
                         />
                     </Grid>
                 </Slide>
-                <Grid item xs={12}>
+                <Grid item={true.toString()} xs={12}>
                     <MovieList action={action} movies={displayedMovies} />
                 </Grid>
 
                 {totalPages > 1 && (
-                    <Grid item>
+                    <Grid item={true.toString()}>
                         <Box sx={{ mt: 4 }}>
                             <Pagination
                                 count={totalPages}

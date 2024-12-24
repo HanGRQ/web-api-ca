@@ -1,4 +1,3 @@
-// components/movieCard/index.js
 import React, { useContext } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
@@ -11,28 +10,36 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import CalendarIcon from "@mui/icons-material/CalendarTodayTwoTone";
 import StarRateIcon from "@mui/icons-material/StarRate";
 import Grid from "@mui/material/Grid";
-import img from '../../images/film-poster-placeholder.png';
+import img from "../../images/film-poster-placeholder.png";
 import { Link } from "react-router-dom";
-import Avatar from '@mui/material/Avatar';
-import { AuthContext } from "../../contexts/authContext";
+import IconButton from "@mui/material/IconButton";
+import { MoviesContext } from "../../contexts/moviesContext";
 
-export default function MovieCard({ movie, action}) {
-  const { isAuthenticated } = useContext(AuthContext);
+export default function MovieCard({ movie, action }) {
+  const { favorites, addToFavorites, removeFromFavorites } = useContext(MoviesContext);
+
+  const isFavorite = favorites.includes(movie.id); 
+
+  const handleFavoriteClick = () => {
+    if (isFavorite) {
+      removeFromFavorites(movie.id); 
+    } else {
+      addToFavorites(movie.id); 
+    }
+  };
 
   return (
     <Card>
       <CardHeader
-        avatar={
-          isAuthenticated ? (
-            <Avatar sx={{ backgroundColor: 'red' }}>
-              <FavoriteIcon />
-            </Avatar>
-          ) : null
-        }
         title={
           <Typography variant="h5" component="p">
             {movie.title}
           </Typography>
+        }
+        action={
+          <IconButton onClick={handleFavoriteClick}>
+            <FavoriteIcon color={isFavorite ? "error" : "disabled"} />
+          </IconButton>
         }
       />
       <CardMedia
@@ -60,10 +67,10 @@ export default function MovieCard({ movie, action}) {
         </Grid>
       </CardContent>
       <CardActions disableSpacing>
-        {isAuthenticated && action && action(movie)}
+        {action && action(movie)}
         <Link to={`/movies/${movie.id}`}>
           <Button variant="outlined" size="medium" color="primary">
-            More Info 
+            More Info
           </Button>
         </Link>
       </CardActions>
