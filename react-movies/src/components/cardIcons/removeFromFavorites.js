@@ -12,10 +12,7 @@ const RemoveFromFavoritesIcon = ({ movie }) => {
   };
 
   return (
-    <IconButton
-      aria-label="remove from favorites"
-      onClick={handleRemoveFromFavorites}
-    >
+    <IconButton aria-label="remove from favorites" onClick={handleRemoveFromFavorites}>
       <DeleteIcon color="primary" fontSize="large" />
     </IconButton>
   );

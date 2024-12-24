@@ -1,3 +1,4 @@
+// components/movieCard/index.js
 import React, { useContext } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
@@ -13,19 +14,16 @@ import Grid from "@mui/material/Grid";
 import img from '../../images/film-poster-placeholder.png';
 import { Link } from "react-router-dom";
 import Avatar from '@mui/material/Avatar';
-import { MoviesContext } from "../../contexts/moviesContext";
+import { AuthContext } from "../../contexts/authContext";
 
-export default function MovieCard({ movie, action, isFavoritePage = false }) {
-  const { favorites } = useContext(MoviesContext);
-
-  // 检查是否已在收藏夹中
-  const isFavorite = favorites.find((id) => id === movie.id) !== undefined;
+export default function MovieCard({ movie, action}) {
+  const { isAuthenticated } = useContext(AuthContext);
 
   return (
     <Card>
       <CardHeader
         avatar={
-          !isFavoritePage && isFavorite ? (
+          isAuthenticated ? (
             <Avatar sx={{ backgroundColor: 'red' }}>
               <FavoriteIcon />
             </Avatar>
@@ -62,7 +60,7 @@ export default function MovieCard({ movie, action, isFavoritePage = false }) {
         </Grid>
       </CardContent>
       <CardActions disableSpacing>
-        {action(movie)}
+        {isAuthenticated && action && action(movie)}
         <Link to={`/movies/${movie.id}`}>
           <Button variant="outlined" size="medium" color="primary">
             More Info 

@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from "react-query/devtools";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 
+// Import components and pages...
 import HomePage from "./pages/homePage";
 import MoviePage from "./pages/movieDetailsPage";
 import FavoriteMoviesPage from "./pages/favoriteMoviesPage";
@@ -29,23 +30,13 @@ const queryClient = new QueryClient({
       staleTime: 360000,
       refetchInterval: 360000,
       refetchOnWindowFocus: false,
-      retry: 2,  
-      onError: (error) => {
-        if (error.message === 'Unauthorized' || error.status === 401) {
-          window.location.href = '/login';
-        }
-      }
+      retry: 2,
     },
   },
 });
 
 const LoadingSpinner = () => (
-  <Box
-    display="flex"
-    justifyContent="center"
-    alignItems="center"
-    minHeight="100vh"
-  >
+  <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
     <CircularProgress />
   </Box>
 );
@@ -53,34 +44,34 @@ const LoadingSpinner = () => (
 // PrivateRoute component
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  if (!isAuthenticated && location.pathname !== '/') {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
 };
 
 // AppContent component
 const AppContent = () => {
-  const location = useLocation();
   const { isAuthenticated } = useAuth();
-
-  if (isAuthenticated && location.pathname === '/login') {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <>
-      {location.pathname !== "/login" && <SiteHeader />}
+      <SiteHeader />
       <Routes>
-        {/* Public Route */}
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />} />
+        {/* Public Routes */}
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+        } />
+        <Route path="/" element={<HomePage />} />
 
         {/* Protected Routes */}
-        <Route path="/" element={<PrivateRoute><SiteHeader /><HomePage /></PrivateRoute>} />
-        
-        {/* Movies 相关路由 */}
         <Route path="/movies">
           <Route path="favorites" element={<PrivateRoute><FavoriteMoviesPage /></PrivateRoute>} />
           <Route path=":id" element={<PrivateRoute><MoviePage /></PrivateRoute>} />
@@ -91,18 +82,15 @@ const AppContent = () => {
           <Route path="now_playing" element={<PrivateRoute><NowPlayingMoviesPage /></PrivateRoute>} />
         </Route>
 
-        {/* Reviews 相关路由 */}
         <Route path="/reviews">
           <Route path=":movieId/:reviewId" element={<PrivateRoute><MovieReviewPage /></PrivateRoute>} />
           <Route path="form" element={<PrivateRoute><AddMovieReviewPage /></PrivateRoute>} />
         </Route>
 
-        {/* 其他路由 */}
         <Route path="/watchlist" element={<PrivateRoute><WatchlistPage /></PrivateRoute>} />
         <Route path="/actor/:id" element={<PrivateRoute><ActorDetails /></PrivateRoute>} />
 
-        
-        {/* 404 重定向 */}
+        {/* 404 Redirect */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>

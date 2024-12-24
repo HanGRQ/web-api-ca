@@ -216,13 +216,14 @@ router.post('/favorites/:movieId', authenticate, asyncHandler(async (req, res) =
 }));
 
 router.delete('/favorites/:movieId', authenticate, asyncHandler(async (req, res) => {
-  const movieId = req.params.movieId;
+  const movieId = parseInt(req.params.movieId); 
   const user = req.user;
 
   user.favorites = user.favorites.filter((id) => id !== movieId);
   await user.save();
   res.status(200).json({ success: true, favorites: user.favorites });
 }));
+
 
 router.post('/watchlist/:movieId', authenticate, asyncHandler(async (req, res) => {
   const movieId = parseInt(req.params.movieId);

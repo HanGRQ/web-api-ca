@@ -10,12 +10,10 @@ import WriteReview from "../components/cardIcons/writeReview";
 const FavoriteMoviesPage = () => {
   const { favorites: movieIds } = useContext(MoviesContext);
 
-  const uniqueIds = [...new Set(movieIds)];
-
   const favoriteMovieQueries = useQueries(
-    uniqueIds.map((movieId) => ({
+    movieIds.map((movieId) => ({
       queryKey: ["movie", { id: movieId }],
-      queryFn: () => getMovie(movieId),
+      queryFn: () => getMovie(movieId), 
     }))
   );
 
@@ -25,15 +23,9 @@ const FavoriteMoviesPage = () => {
     return <Spinner />;
   }
 
-  const allMovies = favoriteMovieQueries
-    .filter((query) => query.data)
-    .map((query) => query.data);
-
-  const movies = [...new Map(allMovies.map(movie => [movie.id, movie])).values()];
-
-  if (movies.length === 0) {
-    return <h2>No favorite movies added yet!</h2>;
-  }
+  const movies = favoriteMovieQueries
+    .map((q) => q.data)
+    .filter((movie) => movie !== null);
 
   return (
     <PageTemplate

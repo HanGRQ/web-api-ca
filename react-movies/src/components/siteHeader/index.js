@@ -1,3 +1,4 @@
+// components/siteHeader/index.js
 import React, { useState, useContext } from "react";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -22,6 +23,17 @@ import { styled } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { AuthContext } from "../../contexts/authContext";
+import { MoviesContext } from "../../contexts/moviesContext";
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    right: -3,
+    top: 3,
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText,
+    padding: '0 4px',
+  },
+}));
 
 const Offset = styled("div")(({ theme }) => theme.mixins.toolbar);
 
@@ -31,36 +43,44 @@ const SiteHeader = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { user, userData, logout } = useContext(AuthContext);
+  const { user, isAuthenticated, logout } = useContext(AuthContext);
+  const { favorites, watchlist } = useContext(MoviesContext);
   const navigate = useNavigate();
 
-  const menuOptions = [
-    { icon: <HomeIcon />, path: "/", tooltip: "Home" },
+  const publicMenuOptions = [
+    { icon: <HomeIcon />, path: "/", tooltip: "Home" }
+  ];
+
+  const protectedMenuOptions = [
     { 
       icon: (
-        <Badge badgeContent={userData?.favorites?.length || 0} color="error">
+        <StyledBadge badgeContent={favorites?.length || 0} color="error" showZero>
           <FavoriteIcon />
-        </Badge>
+        </StyledBadge>
       ), 
       path: "/movies/favorites", 
-      tooltip: "Favorites" 
+      tooltip: `Favorites (${favorites?.length || 0})` 
     },
     { icon: <UpcomingIcon />, path: "/movies/upcoming", tooltip: "Upcoming" },
     { icon: <TrendingUpIcon />, path: "/movies/trending", tooltip: "Trending" },
     { icon: <PlayCircleIcon />, path: "/movies/now_playing", tooltip: "Now Playing" },
     { 
       icon: (
-        <Badge badgeContent={userData?.watchlist?.length || 0} color="error">
+        <StyledBadge badgeContent={watchlist?.length || 0} color="error" showZero>
           <WatchLaterIcon />
-        </Badge>
+        </StyledBadge>
       ), 
       path: "/watchlist", 
-      tooltip: "Watchlist" 
+      tooltip: `Watchlist (${watchlist?.length || 0})`
     },
   ];
 
+  const menuOptions = isAuthenticated 
+    ? [...publicMenuOptions, ...protectedMenuOptions]
+    : publicMenuOptions;
+
   const handleMenuSelect = (pageURL) => {
-    navigate(pageURL, { replace: true });
+    navigate(pageURL);
     setAnchorEl(null);
   };
 
@@ -72,9 +92,13 @@ const SiteHeader = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
       await logout();
-      navigate("/login");
+      navigate("/");
     }
   };
+
+  const welcomeMessage = isAuthenticated
+    ? `Welcome, ${user?.email || 'User'}`
+    : 'Welcome, my friends!';
 
   return (
     <>
@@ -84,11 +108,9 @@ const SiteHeader = () => {
             TMDB Client
           </Typography>
 
-          {user && (
-            <Typography variant="h6" sx={{ mr: 2 }}>
-              Welcome, {user.displayName || user.email}
-            </Typography>
-          )}
+          <Typography variant="h6" sx={{ mr: 2 }}>
+            {welcomeMessage}
+          </Typography>
 
           {isMobile ? (
             <>
@@ -123,9 +145,9 @@ const SiteHeader = () => {
                     </Tooltip>
                   </MenuItem>
                 ))}
-                <MenuItem onClick={user ? handleLogout : () => navigate("/login")}>
-                  <Tooltip title={user ? "Logout" : "Login"} arrow>
-                    {user ? <LogoutIcon /> : <LoginIcon />}
+                <MenuItem onClick={isAuthenticated ? handleLogout : () => navigate("/login")}>
+                  <Tooltip title={isAuthenticated ? "Logout" : "Login"} arrow>
+                    {isAuthenticated ? <LogoutIcon /> : <LoginIcon />}
                   </Tooltip>
                 </MenuItem>
               </Menu>
@@ -140,17 +162,20 @@ const SiteHeader = () => {
                 </Tooltip>
               ))}
 
-              {user && user.photoURL && (
+              {isAuthenticated && user?.photoURL && (
                 <Avatar
                   src={user.photoURL}
-                  alt={user.displayName || user.email}
+                  alt={user.email}
                   sx={{ ml: 2, mr: 2 }}
                 />
-              )}  
+              )}
 
-              <Tooltip title={user ? "Logout" : "Login"} arrow>
-                <IconButton color="inherit" onClick={user ? handleLogout : () => navigate("/login")}>
-                  {user ? <LogoutIcon /> : <LoginIcon />}
+              <Tooltip title={isAuthenticated ? "Logout" : "Login"} arrow>
+                <IconButton 
+                  color="inherit" 
+                  onClick={isAuthenticated ? handleLogout : () => navigate("/login")}
+                >
+                  {isAuthenticated ? <LogoutIcon /> : <LoginIcon />}
                 </IconButton>
               </Tooltip>
             </>
