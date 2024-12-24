@@ -1,41 +1,153 @@
-import React, { useState, createContext } from "react";
+// contexts/moviesContext.js
+import React, { useState, createContext, useEffect, useContext } from "react";
+import { AuthContext } from "./authContext";
 
 export const MoviesContext = createContext(null);
 
-const MoviesContextProvider = (props) => {
+const MoviesContextProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
   const [myReviews, setMyReviews] = useState({});
+  const { token } = useContext(AuthContext);
 
-  // 添加到收藏夹
-  const addToFavorites = (movie) => {
-    if (!favorites.includes(movie.id)) {
-      console.log("Adding movie to favorites:", movie.id); // Debug log
-      setFavorites([...favorites, movie.id]); // Only add unique IDs
-    } else {
-      console.log("Movie already in favorites:", movie.id); // Debug log
+  const loadUserData = async () => {
+    try {
+      if (!token) return;
+
+      const response = await fetch('http://localhost:8080/api/users/me', {
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load user data: ' + response.status);
+      }
+
+      const data = await response.json();
+      if (data.user) {
+        setFavorites(data.user.favorites || []);
+        setWatchlist(data.user.watchlist || []);
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
     }
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!token) return;
   
+        const response = await fetch('http://localhost:8080/api/users/me', {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to load user data: ' + response.status);
+        }
+  
+        const data = await response.json();
+        if (data.user) {
+          setFavorites(data.user.favorites || []);
+          setWatchlist(data.user.watchlist || []);
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      }
+    };
 
-  // 从收藏夹移除
-  const removeFromFavorites = (movie) => {
-    setFavorites(favorites.filter((id) => id !== movie.id));
-  };
+    fetchData();
+  }, [token]); 
 
-  // 添加到 Watchlist
-  const addToWatchlist = (movie) => {
-    if (!watchlist.includes(movie.id)) {
-      setWatchlist([...watchlist, movie.id]);
+  const addToFavorites = async (movie) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/users/favorites/${movie.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add to favorites');
+      }
+
+      const data = await response.json();
+      setFavorites(data.favorites);
+    } catch (error) {
+      console.error('Error adding to favorites:', error);
     }
   };
 
-  // 从 Watchlist 移除
-  const removeFromWatchlist = (movie) => {
-    setWatchlist(watchlist.filter((id) => id !== movie.id));
+  const removeFromFavorites = async (movie) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/users/favorites/${movie.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove from favorites');
+      }
+
+      const data = await response.json();
+      setFavorites(data.favorites);
+    } catch (error) {
+      console.error('Error removing from favorites:', error);
+    }
   };
 
-  // 添加影评
+  const addToWatchlist = async (movie) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/users/watchlist/${movie.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add to watchlist');
+      }
+
+      const data = await response.json();
+      setWatchlist(data.watchlist);
+    } catch (error) {
+      console.error('Error adding to watchlist:', error);
+    }
+  };
+
+  const removeFromWatchlist = async (movie) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/users/watchlist/${movie.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove from watchlist');
+      }
+
+      const data = await response.json();
+      setWatchlist(data.watchlist);
+    } catch (error) {
+      console.error('Error removing from watchlist:', error);
+    }
+  };
+
   const addReview = (movie, review) => {
     setMyReviews({ ...myReviews, [movie.id]: review });
   };
@@ -45,15 +157,15 @@ const MoviesContextProvider = (props) => {
       value={{
         favorites,
         watchlist,
-        myReviews,
         addToFavorites,
         removeFromFavorites,
         addToWatchlist,
         removeFromWatchlist,
         addReview,
+        loadUserData // 导出这个方法以便需要时手动刷新
       }}
     >
-      {props.children}
+      {children}
     </MoviesContext.Provider>
   );
 };

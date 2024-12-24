@@ -12,6 +12,8 @@ import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import WatchLaterIcon from "@mui/icons-material/WatchLater";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Avatar from "@mui/material/Avatar";
+import Badge from "@mui/material/Badge";
 import Tooltip from "@mui/material/Tooltip";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -29,18 +31,32 @@ const SiteHeader = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { user, logout } = useContext(AuthContext);
-
+  const { user, userData, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // 菜单项配置，使用图标和提示字符
   const menuOptions = [
     { icon: <HomeIcon />, path: "/", tooltip: "Home" },
-    { icon: <FavoriteIcon />, path: "/movies/favorites", tooltip: "Favorites" },
+    { 
+      icon: (
+        <Badge badgeContent={userData?.favorites?.length || 0} color="error">
+          <FavoriteIcon />
+        </Badge>
+      ), 
+      path: "/movies/favorites", 
+      tooltip: "Favorites" 
+    },
     { icon: <UpcomingIcon />, path: "/movies/upcoming", tooltip: "Upcoming" },
     { icon: <TrendingUpIcon />, path: "/movies/trending", tooltip: "Trending" },
     { icon: <PlayCircleIcon />, path: "/movies/now_playing", tooltip: "Now Playing" },
-    { icon: <WatchLaterIcon />, path: "/watchlist", tooltip: "Watchlist" },
+    { 
+      icon: (
+        <Badge badgeContent={userData?.watchlist?.length || 0} color="error">
+          <WatchLaterIcon />
+        </Badge>
+      ), 
+      path: "/watchlist", 
+      tooltip: "Watchlist" 
+    },
   ];
 
   const handleMenuSelect = (pageURL) => {
@@ -64,15 +80,16 @@ const SiteHeader = () => {
     <>
       <AppBar position="fixed" color="secondary">
         <Toolbar>
-          {/* 保持原始的 Header 文本 */}
           <Typography variant="h4" sx={{ flexGrow: 1 }}>
             TMDB Client
           </Typography>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            All you ever wanted to know about Movies!
-          </Typography>
 
-          {/* 移动端菜单 */}
+          {user && (
+            <Typography variant="h6" sx={{ mr: 2 }}>
+              Welcome, {user.displayName || user.email}
+            </Typography>
+          )}
+
           {isMobile ? (
             <>
               <IconButton
@@ -106,7 +123,6 @@ const SiteHeader = () => {
                     </Tooltip>
                   </MenuItem>
                 ))}
-                {/* 登录或登出图标 */}
                 <MenuItem onClick={user ? handleLogout : () => navigate("/login")}>
                   <Tooltip title={user ? "Logout" : "Login"} arrow>
                     {user ? <LogoutIcon /> : <LoginIcon />}
@@ -115,7 +131,6 @@ const SiteHeader = () => {
               </Menu>
             </>
           ) : (
-            // 桌面端导航栏，所有图标放在右侧
             <>
               {menuOptions.map((opt, index) => (
                 <Tooltip key={index} title={opt.tooltip} arrow>
@@ -124,7 +139,15 @@ const SiteHeader = () => {
                   </IconButton>
                 </Tooltip>
               ))}
-              {/* 登录或登出图标 */}
+
+              {user && user.photoURL && (
+                <Avatar
+                  src={user.photoURL}
+                  alt={user.displayName || user.email}
+                  sx={{ ml: 2, mr: 2 }}
+                />
+              )}  
+
               <Tooltip title={user ? "Logout" : "Login"} arrow>
                 <IconButton color="inherit" onClick={user ? handleLogout : () => navigate("/login")}>
                   {user ? <LogoutIcon /> : <LoginIcon />}
