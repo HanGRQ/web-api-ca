@@ -11,6 +11,8 @@ import recommendationsRouter from './api/recommendations';
 import creditsRouter from './api/credits';
 import actorsRouter from './api/actor';
 import imagesRouter from './api/images';
+import swaggerDocs from './swagger.js';
+
 
 dotenv.config();
 
@@ -29,6 +31,8 @@ app.use('/api/actors', actorsRouter);
 app.use('/api/images', imagesRouter);
 
 app.use(defaultErrHandler);
+
+swaggerDocs(app); 
 
 app.listen(port, () => {
   console.info(`Server running at ${port}`);

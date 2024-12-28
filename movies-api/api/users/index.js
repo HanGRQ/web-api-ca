@@ -1,4 +1,3 @@
-// routes/index.js
 import express from 'express';
 import User from './userModel';
 import jwt from 'jsonwebtoken';
@@ -29,13 +28,75 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Check if user exists by email
+/**
+ * @swagger
+ * /api/users/check/{email}:
+ *   get:
+ *     summary: Check if a user exists
+ *     description: Checks whether a user with the given email exists in the database.
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The email to check.
+ *     responses:
+ *       200:
+ *         description: Success response.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 exists:
+ *                   type: boolean
+ *                   description: Whether the user exists.
+ *       400:
+ *         description: Invalid email format.
+ *       500:
+ *         description: Server error.
+ */
+
 router.get('/check/:email', asyncHandler(async (req, res) => {
   const user = await User.findByEmail(req.params.email);
   res.json({ exists: !!user });
 }));
 
-// User registration
+/**
+ * @swagger
+ * /api/users/register:
+ *   post:
+ *     summary: Register a new user
+ *     description: Creates a new user account.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 example: Password123
+ *               photoURL:
+ *                 type: string
+ *                 example: http://example.com/photo.jpg
+ *     responses:
+ *       201:
+ *         description: User successfully created.
+ *       400:
+ *         description: Bad request (e.g., email already registered).
+ *       500:
+ *         description: Server error.
+ */
+
 router.post('/register', asyncHandler(async (req, res) => {
   const { email, password, photoURL } = req.body;
 
@@ -58,9 +119,9 @@ router.post('/register', asyncHandler(async (req, res) => {
     const user = new User({
       email,
       password,
-      photoURL: photoURL || '', // 确保 photoURL 有默认值
-      favorites: [], // 初始化 favorites
-      watchlist: []  // 初始化 watchlist
+      photoURL: photoURL || '', 
+      favorites: [], 
+      watchlist: []  
     });
 
     await user.save();
@@ -92,7 +153,37 @@ router.post('/register', asyncHandler(async (req, res) => {
 }));
 
 
-// User login
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: User login
+ *     description: Authenticates a user and returns a JWT token.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 example: Password123
+ *     responses:
+ *       200:
+ *         description: User successfully authenticated.
+ *       401:
+ *         description: Authentication failed.
+ *       500:
+ *         description: Server error.
+ */
+
 router.post('/login', asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -138,7 +229,95 @@ router.post('/login', asyncHandler(async (req, res) => {
   });
 }));
 
-// Google auth
+/**
+ * @swagger
+ * /api/users/google-auth:
+ *   post:
+ *     summary: Google Authentication
+ *     description: Authenticate a user using Google credentials. If the user exists, it updates the user's photo. Otherwise, it creates a new user.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's Google email address.
+ *                 example: user@example.com
+ *               googleId:
+ *                 type: string
+ *                 description: The Google ID of the user.
+ *                 example: abc123xyz
+ *               photoURL:
+ *                 type: string
+ *                 format: uri
+ *                 description: The user's profile photo URL from Google.
+ *                 example: https://example.com/photo.jpg
+ *     responses:
+ *       200:
+ *         description: Successfully authenticated the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: Indicates if the operation was successful.
+ *                   example: true
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for the user.
+ *                   example: Bearer abcdefghijklmnopqrstuvwxyz
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                       description: User's email address.
+ *                       example: user@example.com
+ *                     photoURL:
+ *                       type: string
+ *                       format: uri
+ *                       description: URL of the user's profile photo.
+ *                       example: https://example.com/photo.jpg
+ *                     favorites:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       description: List of favorite movie IDs.
+ *                       example: ["123", "456"]
+ *                     watchlist:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                       description: List of movie IDs in the user's watchlist.
+ *                       example: ["789", "101"]
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: Account creation date and time.
+ *                       example: 2024-12-28T12:34:56Z
+ *       500:
+ *         description: Server error or database failure.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: Indicates the operation failed.
+ *                   example: false
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the failure.
+ *                   example: Internal server error.
+ */
 router.post('/google-auth', asyncHandler(async (req, res) => {
   const { email, googleId, photoURL } = req.body;
 
@@ -146,17 +325,15 @@ router.post('/google-auth', asyncHandler(async (req, res) => {
     let user = await User.findByEmail(email);
 
     if (user) {
-      // 更新现有用户
       user.photoURL = photoURL || user.photoURL;
       await user.save();
     } else {
-      // 创建新用户
       user = new User({
         email,
-        password: googleId, // 使用 googleId 作为密码
+        password: googleId,
         photoURL,
-        favorites: [], // 初始化 favorites
-        watchlist: []  // 初始化 watchlist
+        favorites: [], 
+        watchlist: [] 
       });
       await user.save();
     }
@@ -186,7 +363,23 @@ router.post('/google-auth', asyncHandler(async (req, res) => {
   }
 }));
 
-// User data
+/**
+ * @swagger
+ * /api/users/me:
+ *   get:
+ *     summary: Retrieve user details
+ *     description: Fetches details of the currently logged-in user.
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User details successfully retrieved.
+ *       401:
+ *         description: Unauthorized access.
+ *       500:
+ *         description: Server error.
+ */
+
 router.get('/me', authenticate, asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
@@ -200,8 +393,51 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
   });
 }));
 
-
-// 收藏和观看列表路由
+/**
+ * @swagger
+ * /api/users/favorites/{movieId}:
+ *   post:
+ *     summary: Add a movie to the user's favorites
+ *     description: Adds a movie to the authenticated user's favorites list.
+ *     parameters:
+ *       - in: path
+ *         name: movieId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the movie to add to favorites.
+ *     responses:
+ *       200:
+ *         description: Movie successfully added to favorites.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 favorites:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["123", "456"]
+ *       400:
+ *         description: Movie is already in the user's favorites.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Movie already in favorites.
+ *       401:
+ *         description: Unauthorized access.
+ */
 router.post('/favorites/:movieId', authenticate, asyncHandler(async (req, res) => {
   const movieId = req.params.movieId;
   const user = req.user;
@@ -215,6 +451,38 @@ router.post('/favorites/:movieId', authenticate, asyncHandler(async (req, res) =
   }
 }));
 
+/**
+ * @swagger
+ * /api/users/favorites/{movieId}:
+ *   delete:
+ *     summary: Remove a movie from the user's favorites
+ *     description: Removes a movie from the authenticated user's favorites list.
+ *     parameters:
+ *       - in: path
+ *         name: movieId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the movie to remove from favorites.
+ *     responses:
+ *       200:
+ *         description: Movie successfully removed from favorites.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 favorites:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["123"]
+ *       401:
+ *         description: Unauthorized access.
+ */
 router.delete('/favorites/:movieId', authenticate, asyncHandler(async (req, res) => {
   const movieId = parseInt(req.params.movieId); 
   const user = req.user;
@@ -224,7 +492,38 @@ router.delete('/favorites/:movieId', authenticate, asyncHandler(async (req, res)
   res.status(200).json({ success: true, favorites: user.favorites });
 }));
 
-
+/**
+ * @swagger
+ * /api/users/watchlist/{movieId}:
+ *   post:
+ *     summary: Add a movie to the user's watchlist
+ *     description: Adds a movie to the authenticated user's watchlist.
+ *     parameters:
+ *       - in: path
+ *         name: movieId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the movie to add to the watchlist.
+ *     responses:
+ *       200:
+ *         description: Movie successfully added to the watchlist.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 watchlist:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["123", "789"]
+ *       401:
+ *         description: Unauthorized access.
+ */
 router.post('/watchlist/:movieId', authenticate, asyncHandler(async (req, res) => {
   const movieId = parseInt(req.params.movieId);
   const updatedWatchlist = await req.user.addToWatchlist(movieId);
@@ -234,6 +533,38 @@ router.post('/watchlist/:movieId', authenticate, asyncHandler(async (req, res) =
   });
 }));
 
+/**
+ * @swagger
+ * /api/users/watchlist/{movieId}:
+ *   delete:
+ *     summary: Remove a movie from the user's watchlist
+ *     description: Removes a movie from the authenticated user's watchlist.
+ *     parameters:
+ *       - in: path
+ *         name: movieId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the movie to remove from the watchlist.
+ *     responses:
+ *       200:
+ *         description: Movie successfully removed from the watchlist.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 watchlist:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["789"]
+ *       401:
+ *         description: Unauthorized access.
+ */
 router.delete('/watchlist/:movieId', authenticate, asyncHandler(async (req, res) => {
   const movieId = parseInt(req.params.movieId);
   const updatedWatchlist = await req.user.removeFromWatchlist(movieId);
@@ -243,6 +574,54 @@ router.delete('/watchlist/:movieId', authenticate, asyncHandler(async (req, res)
   });
 }));
 
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users
+ *     description: Fetches all users from the database.
+ *     responses:
+ *       200:
+ *         description: List of all users retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   email:
+ *                     type: string
+ *                     example: user@example.com
+ *                   photoURL:
+ *                     type: string
+ *                     format: uri
+ *                     example: https://example.com/photo.jpg
+ *                   favorites:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["123", "456"]
+ *                   watchlist:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["789"]
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                     example: 2024-12-28T12:34:56Z
+ *       500:
+ *         description: Server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Failed to fetch users.
+ */
 router.get("/", async (req, res) => {
   try {
     const users = await User.find(); 

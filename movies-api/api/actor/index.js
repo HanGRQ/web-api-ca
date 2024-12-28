@@ -5,11 +5,44 @@ import { getActorDetails, getActorMovies } from "../tmdb-api.js";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/actors:
+ *   get:
+ *     summary: Get all actors
+ *     description: Retrieve a list of all actors from the database.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all actors.
+ *       500:
+ *         description: Internal server error.
+ */
 router.get('/', asyncHandler(async (req, res) => {
     const actors = await Actor.find();
     res.status(200).json(actors);
 }));
 
+/**
+ * @swagger
+ * /api/actors/{id}:
+ *   get:
+ *     summary: Get actor details
+ *     description: Retrieve details of a specific actor by their ID.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the actor to retrieve.
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved actor details.
+ *       404:
+ *         description: Actor not found.
+ *       500:
+ *         description: Internal server error.
+ */
 router.get("/:id", asyncHandler(async (req, res) => {
     const { id } = req.params;
 
@@ -30,6 +63,27 @@ router.get("/:id", asyncHandler(async (req, res) => {
     res.status(200).json(actor);
 }));
 
+/**
+ * @swagger
+ * /api/actors/{id}/movies:
+ *   get:
+ *     summary: Get movies by actor
+ *     description: Retrieve a list of movies in which a specific actor has performed.
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the actor to retrieve their movies.
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the actor's movies.
+ *       404:
+ *         description: Actor not found.
+ *       500:
+ *         description: Internal server error.
+ */
 router.get("/:id/movies", asyncHandler(async (req, res) => {
     const { id } = req.params;
 
